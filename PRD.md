@@ -17,17 +17,37 @@ Simple settings window with three fields:
    POST https://api.openai.com/v1/audio/transcriptions
    - model: gpt-4o-transcribe
    - file: audio.mp3 (or other supported formats)
+   curl --request POST \
+  --url https://api.openai.com/v1/audio/transcriptions \
+  --header "Authorization: Bearer $OPENAI_API_KEY" \
+  --header 'Content-Type: multipart/form-data' \
+  --form file=@/path/to/file/audio.mp3 \
+  --form model=gpt-4o-transcribe
    ```
-4. Enhances transcription using GPT-4o-mini:
+4. Enhances transcription using GPT-5-mini:
    ```
    POST https://api.openai.com/v1/chat/completions
-   - model: gpt-4o-mini
+   - model: gpt-5-mini
    - Prompt includes user context
    - response_format: json_object
    - Returns structured JSON with enhanced text
    ```
-5. Extracts text from JSON response
-6. Copies enhanced text to system clipboard
+   curl https://api.openai.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -d '{
+  "model": "gpt-5-mini",
+  "messages": [],
+  "response_format": {
+    "type": "json_object"
+  },
+  "verbosity": "medium",
+  "reasoning_effort": "medium",
+  "store": false
+}'
+5. Extracts text from JSON response 
+6. Adds context the user defined to the prompt that gets send to OpenAI
+7. Copies enhanced text to system clipboard
 
 ## Technical Requirements
 - Electron-based macOS application (.dmg)
@@ -36,6 +56,8 @@ Simple settings window with three fields:
 - OpenAI API integration
 - System clipboard access
 - Settings persistence
+- Automatic microphone permission handling on startup
+- Direct link to Privacy & Security settings for easy permission management
 
 ## Success Criteria
 - User can configure API key, shortcut, and context

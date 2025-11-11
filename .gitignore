@@ -1,0 +1,20 @@
+# Environment variables
+.env
+
+# Build artifacts
+.build/
+build/
+*.dmg
+
+# Xcode
+*.xcodeproj/
+xcuserdata/
+DerivedData/
+
+# macOS
+.DS_Store
+*.app
+
+# Temporary files
+*.tmp
+*.temp
