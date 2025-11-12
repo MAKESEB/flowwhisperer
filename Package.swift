@@ -11,6 +11,14 @@ let package = Package(
         .executableTarget(
             name: "FlowWhisperer",
             path: "FlowWhisperer",
+            exclude: [
+                "Resources/AppIcon.iconset/",
+                "Resources/Info.plist",
+                "build/",
+                "Views/DebugConsoleView.swift",
+                "FlowWhisperer.entitlements",
+                "FlowWhisperer-fixed.dmg"
+            ],
             sources: [
                 "FlowWhispererApp.swift",
                 "Views/ContentView.swift",
@@ -28,6 +36,9 @@ let package = Package(
                 "Utils/KeychainHelper.swift",
                 "Utils/ClipboardHelper.swift",
                 "Utils/NotificationHelper.swift"
+            ],
+            resources: [
+                .copy("Resources/AppIcon.icns")
             ]
         )
     ]
