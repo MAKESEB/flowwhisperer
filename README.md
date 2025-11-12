@@ -55,9 +55,9 @@ Download `FlowWhisperer.dmg` from this repository and drag to Applications.
 - Validation: `openai/gpt-oss-120b`
 
 ### Google Gemini
-- Transcription: `gemini-2.0-flash-exp` (with file upload)
-- Enhancement: `gemini-2.0-flash-exp`
-- Validation: `gemini-2.0-flash-exp`
+- Transcription: `gemini-2.5-flash` (with file upload)
+- Enhancement: `gemini-2.5-flash`
+- Validation: `gemini-2.5-flash`
 
 ## Technical Details
 

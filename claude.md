@@ -11,11 +11,11 @@
 - **Text Enhancement**: `openai/gpt-oss-120b` with chat/completions endpoint, direct text response
 
 ## Google Gemini Configuration
-- **API Validation**: `gemini-2.0-flash-exp` with models/:generateContent endpoint
-- **Audio Transcription**: `gemini-2.0-flash-exp` with 2-step process:
+- **API Validation**: `gemini-2.5-flash` with models/:generateContent endpoint
+- **Audio Transcription**: `gemini-2.5-flash` with 2-step process:
   1. File upload via /upload/v1beta/files (resumable upload protocol)
   2. Transcription via models/:generateContent with file_uri reference
-- **Text Enhancement**: `gemini-2.0-flash-exp` with models/:generateContent endpoint, direct text response
+- **Text Enhancement**: `gemini-2.5-flash` with models/:generateContent endpoint, direct text response
 - **Authentication**: Uses `x-goog-api-key` header (not Bearer token)
 - **Response Format**: `candidates[].content.parts[].text` structure
 

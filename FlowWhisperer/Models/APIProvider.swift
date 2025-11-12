@@ -336,9 +336,9 @@ struct GroqConfig: ProviderConfig {
 struct GoogleConfig: ProviderConfig {
     let provider: APIProvider = .google
     let baseURL: String = "https://generativelanguage.googleapis.com/v1beta"
-    let transcriptionModel: String = "gemini-2.0-flash-exp"
-    let enhancementModel: String = "gemini-2.0-flash-exp"
-    let validationModel: String = "gemini-2.0-flash-exp"
+    let transcriptionModel: String = "gemini-2.5-flash"
+    let enhancementModel: String = "gemini-2.5-flash"
+    let validationModel: String = "gemini-2.5-flash"
     
     func transcriptionRequest(audioURL: URL, apiKey: String) throws -> URLRequest {
         // Google uses a 2-step process: upload file, then transcribe
