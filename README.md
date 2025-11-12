@@ -16,9 +16,9 @@ Press shortcut → **Black** (idle) → **Blue** (recording) → **Purple** (tra
 - ⌨️ **Customizable Shortcuts**: Set your preferred key combination
 - 🔐 **Secure Storage**: Independent API key validation for each provider
 
-## Local-Compliant Whisper Flow Alternative
+## Local-Compliant WisprFlow Alternative
 
-FlowWhisperer provides a **privacy-first alternative** to cloud-based transcription services by keeping your data under your control. Unlike subscription services that process audio on remote servers, FlowWhisperer uses your own API keys with direct provider connections, ensuring compliance with corporate data policies and privacy regulations. This approach offers a cost-effective solution since you only pay for actual API usage rather than monthly subscriptions.
+FlowWhisperer provides a **privacy-first alternative** to WisprFlow and similar cloud-based transcription services by keeping your data under your control. Unlike WisprFlow's subscription model that processes audio on remote servers, FlowWhisperer uses your own API keys with direct provider connections, ensuring compliance with corporate data policies and privacy regulations. This approach offers a cost-effective solution since you only pay for actual API usage rather than monthly subscriptions.
 
 ## Requirements
 
