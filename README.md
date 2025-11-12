@@ -16,6 +16,10 @@ Press shortcut → **Black** (idle) → **Blue** (recording) → **Purple** (tra
 - ⌨️ **Customizable Shortcuts**: Set your preferred key combination
 - 🔐 **Secure Storage**: Independent API key validation for each provider
 
+## Local-Compliant Whisper Flow Alternative
+
+FlowWhisperer provides a **privacy-first alternative** to cloud-based transcription services by keeping your data under your control. Unlike subscription services that process audio on remote servers, FlowWhisperer uses your own API keys with direct provider connections, ensuring compliance with corporate data policies and privacy regulations. This approach offers a cost-effective solution since you only pay for actual API usage rather than monthly subscriptions.
+
 ## Requirements
 
 - macOS 13.0 or later
