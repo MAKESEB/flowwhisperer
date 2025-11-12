@@ -32,7 +32,7 @@ cd flowwhisperer
 ```
 
 ### Option 2: Download DMG
-Download the latest `.dmg` file from releases and drag to Applications.
+Download `FlowWhisperer.dmg` from this repository and drag to Applications.
 
 ## Quick Setup
 
@@ -162,7 +162,7 @@ FlowWhisperer/
 
 ## License
 
-[Your License Here]
+MIT License - See [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
