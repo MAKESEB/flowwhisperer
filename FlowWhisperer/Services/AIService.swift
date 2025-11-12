@@ -22,6 +22,18 @@ class AIService: ObservableObject {
         
         print("🤖 DEBUG: Transcribing audio using \(currentProvider.displayName) (\(providerConfig.transcriptionModel))")
         
+        // Handle Google's special transcription process
+        if currentProvider == .google, let googleConfig = providerConfig as? GoogleConfig {
+            // Google requires file upload first, then transcription
+            let fileURI = try await googleConfig.uploadFileForTranscription(audioURL: audioURL, apiKey: apiKey)
+            print("🤖 DEBUG: Google file uploaded with URI: \(fileURI)")
+            
+            let transcribedText = try await googleConfig.transcribeWithFileURI(fileURI, apiKey: apiKey)
+            print("🤖 DEBUG: Successfully transcribed \(transcribedText.count) characters using \(currentProvider.displayName)")
+            return transcribedText
+        }
+        
+        // Standard transcription for OpenAI and Groq
         let request = try providerConfig.transcriptionRequest(audioURL: audioURL, apiKey: apiKey)
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -70,8 +82,9 @@ class AIService: ObservableObject {
         
         do {
             let enhancedText = try providerConfig.parseEnhancementResponse(data: data)
+            let cleanedText = stripQuotes(from: enhancedText)
             print("🤖 DEBUG: Successfully enhanced text using \(currentProvider.displayName)")
-            return enhancedText
+            return cleanedText
         } catch {
             print("🤖 DEBUG: Failed to parse enhancement response from \(currentProvider.displayName): \(error)")
             print("🤖 DEBUG: Response data: \(String(data: data, encoding: .utf8) ?? "nil")")
@@ -103,5 +116,23 @@ class AIService: ObservableObject {
         print("🤖 DEBUG: Enhanced text (\(enhancedText.count) chars): \(enhancedText.prefix(100))...")
         
         return enhancedText
+    }
+    
+    // MARK: - Text Cleanup
+    
+    private func stripQuotes(from text: String) -> String {
+        var cleanedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Remove quotes from beginning and end
+        let quotesToRemove = ["\"", "'", "\u{201C}", "\u{201D}", "\u{2018}", "\u{2019}"]
+        
+        for quote in quotesToRemove {
+            if cleanedText.hasPrefix(quote) && cleanedText.hasSuffix(quote) && cleanedText.count > 2 {
+                cleanedText = String(cleanedText.dropFirst().dropLast())
+                cleanedText = cleanedText.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+        }
+        
+        return cleanedText
     }
 }
