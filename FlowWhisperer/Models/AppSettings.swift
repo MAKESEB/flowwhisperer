@@ -37,17 +37,28 @@ class AppSettings: ObservableObject {
         }
     }
     
+    @Published var googleKey: String = "" {
+        didSet {
+            UserDefaults.standard.set(googleKey, forKey: "google_api_key")
+            if selectedProvider == .google {
+                validateCurrentAPIKey()
+            }
+        }
+    }
+    
     // Current API key based on selected provider
     var currentAPIKey: String {
         switch selectedProvider {
         case .openai: return openAIKey
         case .groq: return groqKey
+        case .google: return googleKey
         }
     }
     
     // Validation states for each provider
     @Published var isOpenAIKeyValid: Bool = false
     @Published var isGroqKeyValid: Bool = false
+    @Published var isGoogleKeyValid: Bool = false
     @Published var isValidatingAPIKey: Bool = false
     
     // Current provider validation state
@@ -55,6 +66,7 @@ class AppSettings: ObservableObject {
         switch selectedProvider {
         case .openai: return isOpenAIKeyValid
         case .groq: return isGroqKeyValid
+        case .google: return isGoogleKeyValid
         }
     }
     
@@ -106,6 +118,10 @@ class AppSettings: ObservableObject {
         
         if let apiKey = UserDefaults.standard.string(forKey: "groq_api_key") {
             self.groqKey = apiKey
+        }
+        
+        if let apiKey = UserDefaults.standard.string(forKey: "google_api_key") {
+            self.googleKey = apiKey
         }
         
         // Load keyboard shortcut
@@ -173,6 +189,8 @@ class AppSettings: ObservableObject {
             self.isOpenAIKeyValid = isValid
         case .groq:
             self.isGroqKeyValid = isValid
+        case .google:
+            self.isGoogleKeyValid = isValid
         }
     }
     
@@ -215,16 +233,23 @@ class AppSettings: ObservableObject {
             groqKey = ""
             isGroqKeyValid = false
             UserDefaults.standard.removeObject(forKey: "groq_api_key")
+        case .google:
+            googleKey = ""
+            isGoogleKeyValid = false
+            UserDefaults.standard.removeObject(forKey: "google_api_key")
         }
     }
     
     func clearAllAPIKeys() {
         openAIKey = ""
         groqKey = ""
+        googleKey = ""
         isOpenAIKeyValid = false
         isGroqKeyValid = false
+        isGoogleKeyValid = false
         UserDefaults.standard.removeObject(forKey: "openai_api_key")
         UserDefaults.standard.removeObject(forKey: "groq_api_key")
+        UserDefaults.standard.removeObject(forKey: "google_api_key")
     }
     
     func resetToDefaults() {

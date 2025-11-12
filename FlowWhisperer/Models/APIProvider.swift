@@ -5,6 +5,7 @@ import Foundation
 enum APIProvider: String, CaseIterable, Codable {
     case openai = "OpenAI"
     case groq = "Groq"
+    case google = "Google"
     
     var displayName: String {
         return rawValue
@@ -16,6 +17,8 @@ enum APIProvider: String, CaseIterable, Codable {
             return "https://api.openai.com/v1"
         case .groq:
             return "https://api.groq.com/openai/v1"
+        case .google:
+            return "https://generativelanguage.googleapis.com/v1beta"
         }
     }
 }
@@ -328,6 +331,227 @@ struct GroqConfig: ProviderConfig {
     }
 }
 
+// MARK: - Google Configuration
+
+struct GoogleConfig: ProviderConfig {
+    let provider: APIProvider = .google
+    let baseURL: String = "https://generativelanguage.googleapis.com/v1beta"
+    let transcriptionModel: String = "gemini-2.0-flash-exp"
+    let enhancementModel: String = "gemini-2.0-flash-exp"
+    let validationModel: String = "gemini-2.0-flash-exp"
+    
+    func transcriptionRequest(audioURL: URL, apiKey: String) throws -> URLRequest {
+        // Google uses a 2-step process: upload file, then transcribe
+        // This is handled in a custom implementation
+        throw APIError.encodingError("Google transcription requires custom file upload handling")
+    }
+    
+    func enhancementRequest(text: String, context: String, apiKey: String) throws -> URLRequest {
+        let url = URL(string: "\(baseURL)/models/\(enhancementModel):generateContent")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody = [
+            "contents": [
+                [
+                    "parts": [
+                        [
+                            "text": """
+                            You are a text enhancement assistant. Your task is to improve transcribed speech while maintaining its original meaning and intent.
+                            
+                            User's context: \(context)
+                            
+                            Instructions:
+                            1. Fix grammar, punctuation, and spelling errors
+                            2. Improve clarity and readability
+                            3. Maintain the original tone and meaning
+                            4. Return only the enhanced text, no additional formatting or explanation
+                            
+                            Transcribed text to enhance: "\(text)"
+                            """
+                        ]
+                    ]
+                ]
+            ]
+        ] as [String: Any]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        return request
+    }
+    
+    func validationRequest(apiKey: String) throws -> URLRequest {
+        let url = URL(string: "\(baseURL)/models/\(validationModel):generateContent")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody = [
+            "contents": [
+                [
+                    "parts": [
+                        [
+                            "text": "hello world"
+                        ]
+                    ]
+                ]
+            ]
+        ] as [String: Any]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        return request
+    }
+    
+    func parseTranscriptionResponse(data: Data) throws -> String {
+        struct GoogleResponse: Codable {
+            let candidates: [Candidate]
+        }
+        
+        struct Candidate: Codable {
+            let content: Content
+        }
+        
+        struct Content: Codable {
+            let parts: [Part]
+        }
+        
+        struct Part: Codable {
+            let text: String
+        }
+        
+        let response = try JSONDecoder().decode(GoogleResponse.self, from: data)
+        guard let text = response.candidates.first?.content.parts.first?.text else {
+            throw APIError.noResponse
+        }
+        return text
+    }
+    
+    func parseEnhancementResponse(data: Data) throws -> String {
+        struct GoogleResponse: Codable {
+            let candidates: [Candidate]
+        }
+        
+        struct Candidate: Codable {
+            let content: Content
+        }
+        
+        struct Content: Codable {
+            let parts: [Part]
+        }
+        
+        struct Part: Codable {
+            let text: String
+        }
+        
+        let response = try JSONDecoder().decode(GoogleResponse.self, from: data)
+        guard let text = response.candidates.first?.content.parts.first?.text else {
+            throw APIError.noResponse
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    func parseValidationResponse(data: Data) throws -> Bool {
+        // For validation, we just check if we got any valid response
+        return true
+    }
+    
+    // MARK: - Custom Google Methods
+    
+    func uploadFileForTranscription(audioURL: URL, apiKey: String) async throws -> String {
+        // Step 1: Get MIME type and file size
+        let audioData = try Data(contentsOf: audioURL)
+        let mimeType = "audio/m4a" // Assuming m4a format
+        let numBytes = audioData.count
+        
+        // Step 2: Initial resumable upload request
+        let uploadURL = URL(string: "\(baseURL.replacingOccurrences(of: "v1beta", with: "upload/v1beta"))/files")!
+        var uploadRequest = URLRequest(url: uploadURL)
+        uploadRequest.httpMethod = "POST"
+        uploadRequest.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        uploadRequest.setValue("resumable", forHTTPHeaderField: "X-Goog-Upload-Protocol")
+        uploadRequest.setValue("start", forHTTPHeaderField: "X-Goog-Upload-Command")
+        uploadRequest.setValue("\(numBytes)", forHTTPHeaderField: "X-Goog-Upload-Header-Content-Length")
+        uploadRequest.setValue(mimeType, forHTTPHeaderField: "X-Goog-Upload-Header-Content-Type")
+        uploadRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let metadata = ["file": ["display_name": "AUDIO"]]
+        uploadRequest.httpBody = try JSONSerialization.data(withJSONObject: metadata)
+        
+        let (_, uploadResponse) = try await URLSession.shared.data(for: uploadRequest)
+        
+        guard let httpUploadResponse = uploadResponse as? HTTPURLResponse,
+              let uploadURLString = httpUploadResponse.value(forHTTPHeaderField: "x-goog-upload-url") else {
+            throw APIError.invalidResponse
+        }
+        
+        // Step 3: Upload the actual file data
+        let fileUploadURL = URL(string: uploadURLString)!
+        var fileRequest = URLRequest(url: fileUploadURL)
+        fileRequest.httpMethod = "POST"
+        fileRequest.setValue("\(numBytes)", forHTTPHeaderField: "Content-Length")
+        fileRequest.setValue("0", forHTTPHeaderField: "X-Goog-Upload-Offset")
+        fileRequest.setValue("upload, finalize", forHTTPHeaderField: "X-Goog-Upload-Command")
+        fileRequest.httpBody = audioData
+        
+        let (fileData, _) = try await URLSession.shared.data(for: fileRequest)
+        
+        // Step 4: Parse response to get file URI
+        struct FileUploadResponse: Codable {
+            let file: FileInfo
+        }
+        
+        struct FileInfo: Codable {
+            let uri: String
+        }
+        
+        let fileResponse = try JSONDecoder().decode(FileUploadResponse.self, from: fileData)
+        return fileResponse.file.uri
+    }
+    
+    func transcribeWithFileURI(_ fileURI: String, apiKey: String) async throws -> String {
+        let url = URL(string: "\(baseURL)/models/\(transcriptionModel):generateContent")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody = [
+            "contents": [
+                [
+                    "parts": [
+                        [
+                            "text": "Transcribe this audio clip"
+                        ],
+                        [
+                            "file_data": [
+                                "mime_type": "audio/m4a",
+                                "file_uri": fileURI
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ] as [String: Any]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+        
+        if httpResponse.statusCode != 200 {
+            let errorText = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw APIError.apiError(httpResponse.statusCode, errorText)
+        }
+        
+        return try parseTranscriptionResponse(data: data)
+    }
+}
+
 // MARK: - Provider Factory
 
 struct ProviderConfigFactory {
@@ -337,6 +561,8 @@ struct ProviderConfigFactory {
             return OpenAIConfig()
         case .groq:
             return GroqConfig()
+        case .google:
+            return GoogleConfig()
         }
     }
 }

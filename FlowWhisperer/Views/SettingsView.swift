@@ -183,6 +183,8 @@ struct SettingsView: View {
             return $appSettings.openAIKey
         case .groq:
             return $appSettings.groqKey
+        case .google:
+            return $appSettings.googleKey
         }
     }
 }
