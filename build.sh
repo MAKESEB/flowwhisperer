@@ -59,7 +59,7 @@ echo "✅ App bundle created: $APP_DIR"
 echo "📦 Creating DMG..."
 if command -v create-dmg &> /dev/null; then
     create-dmg \
-        --volname "FlowWhisperer-FIXED" \
+        --volname "FlowWhisperer v0.0.2" \
         --volicon "FlowWhisperer/Resources/AppIcon.icns" \
         --window-pos 200 120 \
         --window-size 600 300 \
@@ -67,10 +67,10 @@ if command -v create-dmg &> /dev/null; then
         --icon "FlowWhisperer.app" 175 120 \
         --hide-extension "FlowWhisperer.app" \
         --app-drop-link 425 120 \
-        "FlowWhisperer-FIXED.dmg" \
+        "FlowWhisperer.dmg" \
         "FlowWhisperer/build/"
     
-    echo "✅ DMG created: FlowWhisperer-FIXED.dmg"
+    echo "✅ DMG created: FlowWhisperer.dmg"
 else
     echo "⚠️  create-dmg not found. Install with: brew install create-dmg"
     echo "📍 You can manually create a DMG from: FlowWhisperer/build/FlowWhisperer.app"

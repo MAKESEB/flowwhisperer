@@ -1,6 +1,6 @@
-# FlowWhisperer 🎙️
+# FlowWhisperer 🎙️ v0.0.2
 
-Voice-to-clipboard transcription app with AI enhancement support for OpenAI and Groq.
+Voice-to-clipboard transcription app with AI enhancement support for OpenAI, Groq, and Google Gemini.
 
 ## How It Works
 
@@ -10,7 +10,7 @@ Press shortcut → **Black** (idle) → **Blue** (recording) → **Purple** (tra
 
 ## Features
 
-- 🤖 **Dual AI Provider Support**: Choose between OpenAI or Groq for transcription and enhancement
+- 🤖 **Triple AI Provider Support**: Choose between OpenAI, Groq, or Google Gemini for transcription and enhancement
 - 🎯 **Visual Feedback**: Floating indicator shows real-time status with color-coded feedback
 - ✨ **Smart Enhancement**: AI improves transcribed speech for clarity and readability
 - ⌨️ **Customizable Shortcuts**: Set your preferred key combination
@@ -20,7 +20,7 @@ Press shortcut → **Black** (idle) → **Blue** (recording) → **Purple** (tra
 
 - macOS 13.0 or later
 - Microphone permissions  
-- OpenAI or Groq API key
+- OpenAI, Groq, or Google Gemini API key
 
 ## Installation
 
@@ -37,7 +37,7 @@ Download `FlowWhisperer.dmg` from this repository and drag to Applications.
 ## Quick Setup
 
 1. Install FlowWhisperer
-2. Open Settings and select your AI provider (OpenAI or Groq)
+2. Open Settings and select your AI provider (OpenAI, Groq, or Google)
 3. Enter your API key
 4. Set keyboard shortcut
 5. Start recording with your shortcut!
@@ -54,6 +54,11 @@ Download `FlowWhisperer.dmg` from this repository and drag to Applications.
 - Enhancement: `openai/gpt-oss-120b`
 - Validation: `openai/gpt-oss-120b`
 
+### Google Gemini
+- Transcription: `gemini-2.0-flash-exp` (with file upload)
+- Enhancement: `gemini-2.0-flash-exp`
+- Validation: `gemini-2.0-flash-exp`
+
 ## Technical Details
 
 ### Architecture
@@ -64,14 +69,16 @@ Download `FlowWhisperer.dmg` from this repository and drag to Applications.
 - **UserNotifications** - System notifications
 
 ### API Integration
-- **OpenAI Whisper** - Speech transcription (`whisper-1` model)
-- **OpenAI GPT** - Text enhancement (`gpt-3.5-turbo`)
+- **OpenAI Whisper** - Speech transcription with multipart form upload
+- **Groq Whisper** - Ultra-fast speech transcription with verbose JSON
+- **Google Gemini** - Advanced transcription with resumable file upload
+- **Multi-Provider Enhancement** - AI text improvement across all providers
 - **Secure HTTP** - All API calls use HTTPS with proper authentication
 
 ### Privacy & Security
 - ✅ API keys encrypted in macOS Keychain
 - ✅ Audio files automatically deleted after processing
-- ✅ No data stored remotely (except OpenAI API calls)
+- ✅ No data stored remotely (except API calls to selected provider)
 - ✅ Sandboxed application with minimal permissions
 
 ## Building
@@ -144,8 +151,9 @@ FlowWhisperer/
 - Enable FlowWhisperer
 
 **API Errors**
-- Verify your OpenAI API key is valid
-- Check your OpenAI account has sufficient credits
+- Verify your API key is valid for the selected provider
+- Check your account has sufficient credits/quota
+- Try switching to a different provider if one is down
 - Ensure stable internet connection
 
 **Build Errors**
