@@ -1,22 +1,26 @@
 # FlowWhisperer 🎙️
 
-A native macOS application that transcribes speech to enhanced text via keyboard shortcut and copies it to clipboard.
+Voice-to-clipboard transcription app with AI enhancement support for OpenAI and Groq.
+
+## How It Works
+
+**Keyboard Shortcut**: ⇧ + ⌘ (customizable)
+
+Press shortcut → **Black** (idle) → **Blue** (recording) → **Purple** (transcribing) → **Green** (ready) → Text automatically copied to clipboard
 
 ## Features
 
-- 🎤 **Voice Recording**: Press and hold a keyboard shortcut to record audio
-- 🤖 **AI Transcription**: Uses OpenAI Whisper for accurate speech-to-text
-- ✨ **Text Enhancement**: AI-powered text improvement with customizable context
-- 📋 **Clipboard Integration**: Automatically copies enhanced text to clipboard
-- ⌨️ **Global Shortcuts**: Configurable keyboard shortcuts (default: fn+w)
-- 🎨 **Native Dark Mode**: Beautiful SwiftUI interface that adapts to system theme
-- 🔒 **Secure Storage**: API keys stored securely in macOS Keychain
+- 🤖 **Dual AI Provider Support**: Choose between OpenAI or Groq for transcription and enhancement
+- 🎯 **Visual Feedback**: Floating indicator shows real-time status with color-coded feedback
+- ✨ **Smart Enhancement**: AI improves transcribed speech for clarity and readability
+- ⌨️ **Customizable Shortcuts**: Set your preferred key combination
+- 🔐 **Secure Storage**: Independent API key validation for each provider
 
 ## Requirements
 
 - macOS 13.0 or later
-- Microphone permissions
-- OpenAI API key
+- Microphone permissions  
+- OpenAI or Groq API key
 
 ## Installation
 
@@ -30,30 +34,25 @@ cd flowwhisperer
 ### Option 2: Download DMG
 Download the latest `.dmg` file from releases and drag to Applications.
 
-## Setup
+## Quick Setup
 
-1. **Get OpenAI API Key**
-   - Visit [OpenAI Platform](https://platform.openai.com/api-keys)
-   - Create a new API key
-   - Copy the key for setup
+1. Install FlowWhisperer
+2. Open Settings and select your AI provider (OpenAI or Groq)
+3. Enter your API key
+4. Set keyboard shortcut
+5. Start recording with your shortcut!
 
-2. **Configure FlowWhisperer**
-   - Launch the app
-   - Add your OpenAI API key in settings
-   - Customize keyboard shortcut if desired
-   - Set your context prompt for text enhancement
+## API Provider Options
 
-3. **Grant Permissions**
-   - Allow microphone access when prompted
-   - Enable accessibility permissions for global shortcuts
+### OpenAI
+- Transcription: `gpt-4o-transcribe`
+- Enhancement: `gpt-5-mini`
+- Validation: `gpt-5-nano`
 
-## Usage
-
-1. **Press and hold** your keyboard shortcut (default: fn+w)
-2. **Speak** while holding the key
-3. **Release** the key to stop recording
-4. **Wait** for AI processing (transcription + enhancement)
-5. **Paste** - the enhanced text is automatically copied to clipboard
+### Groq
+- Transcription: `whisper-large-v3-turbo`
+- Enhancement: `openai/gpt-oss-120b`
+- Validation: `openai/gpt-oss-120b`
 
 ## Technical Details
 

@@ -7,46 +7,23 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // OpenAI API Key Section
-                if appSettings.isAPIKeyValid {
-                    SettingsCard(
-                        title: "OpenAI API Key",
-                        description: "",
-                        icon: "checkmark.circle.fill"
-                    ) {
-                        HStack {
-                            Text("API key configured and validated")
-                                .foregroundColor(.green)
-                            Spacer()
-                            Button("Delete") {
-                                appSettings.clearAPIKey()
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
+                // API Provider Selection Section
+                SettingsCard(
+                    title: "AI Provider",
+                    description: "",
+                    icon: "brain"
+                ) {
+                    Picker("Provider", selection: $appSettings.selectedProvider) {
+                        ForEach(APIProvider.allCases, id: \.self) { provider in
+                            Text(provider.displayName)
+                                .tag(provider)
                         }
                     }
-                } else {
-                    SettingsCard(
-                        title: "OpenAI API Key",
-                        description: "",
-                        icon: "key.fill"
-                    ) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            SecureField("Enter your OpenAI API key", text: $appSettings.openAIKey)
-                                .textFieldStyle(CustomTextFieldStyle())
-                            
-                            if appSettings.isAPIKeySet && !appSettings.isAPIKeyValid {
-                                HStack {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(.orange)
-                                    Text("Validating API key...")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                        }
-                    }
+                    .pickerStyle(SegmentedPickerStyle())
                 }
+                
+                // API Key Section - Dynamic based on selected provider
+                apiKeySection
                 
                 // Keyboard Shortcut Section  
                 SettingsCard(
@@ -126,6 +103,86 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingKeyboardShortcutPicker) {
             KeyboardShortcutPicker(selectedShortcut: $appSettings.keyboardShortcut)
+        }
+    }
+    
+    // MARK: - Dynamic API Key Section
+    
+    @ViewBuilder
+    private var apiKeySection: some View {
+        let currentProvider = appSettings.selectedProvider
+        let isValidated = appSettings.isCurrentAPIKeyValid
+        let isSet = appSettings.isCurrentAPIKeySet
+        let isValidating = appSettings.isValidatingAPIKey
+        
+        if isValidated {
+            SettingsCard(
+                title: "\(currentProvider.displayName) API Key",
+                description: "",
+                icon: "checkmark.circle.fill"
+            ) {
+                HStack {
+                    Text("API key configured and validated")
+                        .foregroundColor(.green)
+                    Spacer()
+                    Button("Delete") {
+                        appSettings.clearCurrentAPIKey()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                }
+            }
+        } else {
+            SettingsCard(
+                title: "\(currentProvider.displayName) API Key",
+                description: "",
+                icon: "key.fill"
+            ) {
+                VStack(alignment: .leading, spacing: 8) {
+                    SecureField("Enter your \(currentProvider.displayName) API key", text: currentAPIKeyBinding)
+                        .textFieldStyle(CustomTextFieldStyle())
+                    
+                    // API Key Status
+                    if isSet {
+                        if isValidating {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(0.6)
+                                Text("Validating API key...")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else if !isValidated {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.red)
+                                Text("Invalid API key")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                        } else {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("API key validated")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Dynamic API Key Binding
+    
+    private var currentAPIKeyBinding: Binding<String> {
+        switch appSettings.selectedProvider {
+        case .openai:
+            return $appSettings.openAIKey
+        case .groq:
+            return $appSettings.groqKey
         }
     }
 }

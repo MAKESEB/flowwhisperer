@@ -7,17 +7,20 @@ class KeyboardService: ObservableObject {
     private var eventHandler: EventHandlerRef?
     private var appSettings: AppSettings?
     private var recordingService: AudioRecordingService?
-    private var openAIService: OpenAIService?
+    private var aiService: AIService?
     private var keyMonitorTimer: Timer?
     private var lastAllPressed = false
     
     private let hotKeySignature = OSType(0x46575354) // 'FWST' for FlowWhisperer
     private let hotKeyID = UInt32(1)
     
-    func setup(with appSettings: AppSettings, recordingService: AudioRecordingService, openAIService: OpenAIService) {
+    func setup(with appSettings: AppSettings, recordingService: AudioRecordingService, aiService: AIService) {
         self.appSettings = appSettings
         self.recordingService = recordingService
-        self.openAIService = openAIService
+        self.aiService = aiService
+        
+        // Set the AI provider based on the current app settings
+        aiService.setProvider(appSettings.selectedProvider)
         
         print("🔧 DEBUG: KeyboardService setup called")
         print("🔧 DEBUG: Shortcut modifiers: \(appSettings.keyboardShortcut.modifiers)")
@@ -184,6 +187,8 @@ class KeyboardService: ObservableObject {
         print("🎤 DEBUG: Calling recordingService.startRecording()...")
         if recordingService.startRecording() {
             appSettings.isRecording = true
+            print("🔵 DEBUG: Setting indicator state to RECORDING")
+            appSettings.indicatorState = .recording
             print("✅ DEBUG: Recording started successfully")
             
             NotificationHelper.showNotification(
@@ -206,7 +211,7 @@ class KeyboardService: ObservableObject {
         
         guard let appSettings = appSettings,
               let recordingService = recordingService,
-              let openAIService = openAIService else {
+              let aiService = aiService else {
             print("❌ DEBUG: Missing dependencies in stopRecording")
             return
         }
@@ -222,22 +227,29 @@ class KeyboardService: ObservableObject {
         print("🛑 DEBUG: Calling recordingService.stopRecording()...")
         if let audioURL = recordingService.stopRecording() {
             appSettings.isRecording = false
+            print("🔵 DEBUG: Setting indicator state to PROCESSING")
+            appSettings.indicatorState = .processing
             print("✅ DEBUG: Recording stopped, audio file: \(audioURL.path)")
             
             Task {
                 do {
-                    print("🔄 DEBUG: Processing audio with OpenAI...")
-                    let result = try await openAIService.processAudio(
+                    print("🔄 DEBUG: Processing audio with \(appSettings.selectedProvider.displayName)...")
+                    // Update AI service provider in case it changed
+                    aiService.setProvider(appSettings.selectedProvider)
+                    
+                    let result = try await aiService.processAudio(
                         audioURL,
                         context: appSettings.contextPrompt,
-                        apiKey: appSettings.openAIKey
+                        apiKey: appSettings.currentAPIKey
                     )
                     
-                    print("✅ DEBUG: OpenAI processing complete: \(result.prefix(50))...")
+                    print("✅ DEBUG: \(appSettings.selectedProvider.displayName) processing complete: \(result.prefix(50))...")
                     
                     DispatchQueue.main.async {
                         appSettings.lastTranscription = result
                         ClipboardHelper.copyToClipboard(result)
+                        print("🔵 DEBUG: Setting indicator state to SUCCESS")
+                        appSettings.indicatorState = .success
                         
                         // Show notification
                         NotificationHelper.showNotification(

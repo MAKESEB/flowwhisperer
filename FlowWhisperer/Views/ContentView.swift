@@ -4,7 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var recordingService: AudioRecordingService
     @EnvironmentObject var keyboardService: KeyboardService
-    @EnvironmentObject var openAIService: OpenAIService
+    @EnvironmentObject var aiService: AIService
     
     var body: some View {
         VStack(spacing: 0) {
@@ -29,10 +29,10 @@ struct ContentView: View {
                 // Status indicator
                 HStack(spacing: 8) {
                     Circle()
-                        .fill(appSettings.isRecording ? .red : (appSettings.openAIKey.isEmpty ? .orange : .green))
+                        .fill(appSettings.isRecording ? .red : (!appSettings.isCurrentAPIKeySet ? .orange : .green))
                         .frame(width: 8, height: 8)
                     
-                    Text(appSettings.isRecording ? "Recording" : (appSettings.openAIKey.isEmpty ? "Setup Required" : "Ready"))
+                    Text(appSettings.isRecording ? "Recording" : (!appSettings.isCurrentAPIKeySet ? "Setup Required" : "Ready"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -49,7 +49,7 @@ struct ContentView: View {
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
             print("🖥️ DEBUG: ContentView onAppear called")
-            keyboardService.setup(with: appSettings, recordingService: recordingService, openAIService: openAIService)
+            keyboardService.setup(with: appSettings, recordingService: recordingService, aiService: aiService)
         }
     }
 }

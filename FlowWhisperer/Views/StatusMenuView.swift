@@ -4,7 +4,7 @@ struct StatusMenuView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var recordingService: AudioRecordingService
     @EnvironmentObject var keyboardService: KeyboardService
-    @EnvironmentObject var openAIService: OpenAIService
+    @EnvironmentObject var aiService: AIService
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -23,7 +23,7 @@ struct StatusMenuView: View {
                     StatusIndicator(
                         isRecording: appSettings.isRecording,
                         isProcessing: appSettings.isProcessing,
-                        hasAPIKey: !appSettings.openAIKey.isEmpty
+                        hasAPIKey: appSettings.isCurrentAPIKeySet
                     )
                 }
                 
@@ -66,7 +66,7 @@ struct StatusMenuView: View {
                     title: "Test Recording",
                     systemImage: "mic.badge.plus",
                     action: testRecording,
-                    disabled: appSettings.openAIKey.isEmpty || !recordingService.hasPermission
+                    disabled: !appSettings.isCurrentAPIKeySet || !recordingService.hasPermission
                 )
                 
                 Divider()
@@ -75,6 +75,12 @@ struct StatusMenuView: View {
                     title: "Open Privacy Settings",
                     systemImage: "lock.shield",
                     action: openPrivacySettings
+                )
+                
+                MenuButton(
+                    title: "Debug Console",
+                    systemImage: "terminal",
+                    action: openDebugConsole
                 )
                 
                 Divider()
@@ -91,7 +97,7 @@ struct StatusMenuView: View {
         .onAppear {
             print("📱 DEBUG: StatusMenuView onAppear called")
             // Setup keyboard service when menu bar appears
-            keyboardService.setup(with: appSettings, recordingService: recordingService, openAIService: openAIService)
+            keyboardService.setup(with: appSettings, recordingService: recordingService, aiService: aiService)
         }
     }
     
@@ -109,7 +115,7 @@ struct StatusMenuView: View {
             .environmentObject(appSettings)
             .environmentObject(recordingService)
             .environmentObject(keyboardService)
-            .environmentObject(openAIService)
+            .environmentObject(aiService)
         
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 500),
@@ -134,6 +140,14 @@ struct StatusMenuView: View {
     
     private func openPrivacySettings() {
         recordingService.openSystemPreferences()
+    }
+    
+    private func openDebugConsole() {
+        // Simple debug console for now - opens Console.app
+        let task = Process()
+        task.launchPath = "/usr/bin/open"
+        task.arguments = ["-a", "Console"]
+        task.launch()
     }
     
     private func quit() {
